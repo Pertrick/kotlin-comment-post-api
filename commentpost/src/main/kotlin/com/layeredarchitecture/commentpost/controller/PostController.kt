@@ -43,10 +43,13 @@ class PostController(var postService: PostService) {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{id}")
-    fun updatePost(@PathVariable("id") id:String, @RequestBody postRequest:PostRequest): PostResponse {
-        val updatedPost = postService.updatePost(Post(id,postRequest.text), id)
-        return PostResponse(updatedPost.id, updatedPost.text, updatedPost.comments)
-
+    fun updatePost(@PathVariable("id") id:String, @RequestBody postRequest:PostRequest): PostResponse? {
+        var postComment = postService.getPost(id)
+        if(postComment != null){
+            val updatedPost = postService.updatePost(Post(id,postRequest.text, postComment.comments), id)
+            return PostResponse(updatedPost.id, updatedPost.text, updatedPost.comments)
+        }
+        return  null
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

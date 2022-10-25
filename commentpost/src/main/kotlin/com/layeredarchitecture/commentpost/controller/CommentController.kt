@@ -1,6 +1,7 @@
 package com.layeredarchitecture.commentpost.controller
 
 import com.layeredarchitecture.commentpost.domain.Comment
+import com.layeredarchitecture.commentpost.domain.Post
 import com.layeredarchitecture.commentpost.dto.CommentRequest
 import com.layeredarchitecture.commentpost.dto.CommentResponse
 import com.layeredarchitecture.commentpost.service.CommentService
@@ -15,12 +16,16 @@ class CommentController(var commentService: CommentService, val postService: Pos
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{id}/comments")
-    fun createComment(@RequestBody commentRequest: CommentRequest, @PathVariable("id") id:String): CommentResponse {
+    fun createComment(@RequestBody commentRequest: CommentRequest, @PathVariable("id") id:String): CommentResponse? {
         val post = postService.getPost(id)
-        val createdComment =  Comment(UUID.randomUUID().toString(),commentRequest.text)
-        post?.addComment(createdComment)
-        return CommentResponse(createdComment.id, createdComment.text)
-
+        if(post != null){
+            val createdComment =  Comment(UUID.randomUUID().toString(),commentRequest.text)
+            commentService.createComment(createdComment)
+            var postWithComment = Post(post.id, post.text, post.comments?.plus(createdComment))
+            postService.createPost(postWithComment)
+            return CommentResponse(createdComment.id, createdComment.text)
+        }
+        return null
     }
 
     @ResponseStatus(HttpStatus.OK)
